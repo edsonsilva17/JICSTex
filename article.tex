@@ -13,18 +13,29 @@
 \usepackage{cite}
 \usepackage{pgfkeys}
 \usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit}
+% lista com recuo e espacamento compactos: o recuo padrao da classe em duas
+% colunas (0.67 in) ocupa um quinto da coluna
+\newenvironment{compactitem}{%
+	\begin{list}{\textbullet}{%
+		\setlength{\leftmargin}{1.2em}\setlength{\labelwidth}{0.7em}\setlength{\labelsep}{0.5em}%
+		\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}\setlength{\topsep}{3pt}\setlength{\partopsep}{0pt}}}%
+	{\end{list}}
 
 \input{resultados}
 
 \begin{document}
 	% TITLE
+% TODO: manter o titulo do SBMicro ou marcar a extensao (decisao do autor)
 \title{A Design-Oriented Open-Source Cryogenic SPICE Model for Sky130 CMOS with Automated Calibration Using Experimental 4 K Data}
 	% AUTHORS AND AFFILIATIONS
-\author{Edson Alves da Silva\textsuperscript1, Lucas Stucchi-Zucchi\textsuperscript2, Marcelo A. Pavanello\textsuperscript3, Jose Alexandre Diniz\textsuperscript4, and Francisco A. Brito-Filho\textsuperscript5\\\vspace{1.2em}\small%
-\textsuperscript1Edson Alves da Silva, Engineering Department, F.U. of the Semiarid Region (UFERSA), Mossoró, Brazil\\%
-\textsuperscript{2,4}Lucas Stucchi-Zucchi and Jose Alexandre Diniz, Electrical Engineering Department, University of Campinas (UNICAMP), Campinas, Brazil\\%
-\textsuperscript3Marcelo A. Pavanello, Electrical Engineering Department, Centro Universitário FEI, Sao Bernardo do Campo, Brazil\\%
-\textsuperscript5Francisco A. Brito-Filho, Engineering Department, F.U. of the Semiarid Region (UFERSA), Caraubas, Brazil\\%
+% TODO: nome da UFERSA em ingles, lista de autores e ORCID (dados a confirmar pelo autor)
+\author{Edson Alves da Silva\textsuperscript1, Lucas Stucchi-Zucchi\textsuperscript2, Marcelo A. Pavanello\textsuperscript3, Jos\'e Alexandre Diniz\textsuperscript4, and Francisco A. Brito-Filho\textsuperscript5\\\vspace{1.2em}\small%
+\textsuperscript{1,5}Edson Alves da Silva and Francisco A. Brito-Filho, Engineering Department, Federal Rural University of the Semi-Arid Region (UFERSA), Cara\'ubas, Brazil\\%
+\textsuperscript{2,4}Lucas Stucchi-Zucchi and Jos\'e Alexandre Diniz, Electrical Engineering Department, University of Campinas (UNICAMP), Campinas, Brazil\\%
+\textsuperscript3Marcelo A. Pavanello, Electrical Engineering Department, Centro Universit\'ario FEI, S\~ao Bernardo do Campo, Brazil\\%
 e-mail: edson.silva17274@alunos.ufersa.edu.br
 }
 %
@@ -36,243 +47,358 @@ e-mail: edson.silva17274@alunos.ufersa.edu.br
 \maketitle
 	% ABSTRACT SECTION
 \begin{abstract}
-	Cryogenic compact models are essential for the design of CMOS interface circuits operating near 4 K, particularly in emerging applications such as quantum computing control and readout electronics. However, accurate model extraction at cryogenic temperatures often depends on costly commercial tools or labor-intensive manual calibration flows. This work presents a fully automated methodology for generating cryogenic BSIM4 models for the open-source Sky130 technology using experimental transistor measurements from the NIST 4 K dataset. The proposed flow combines physics-based parameter initialization using SEKV-E with iterative differential-evolution optimization driven by NGSPICE simulations, enabling scalable geometry-specific model generation without manual tuning. The calibration is design-oriented, prioritizing moderate and strong inversion regions, where most analog and mixed-signal circuits operate. Experimental validation is performed using transfer characteristics, output characteristics, transconductance, and $g_m/I_D$ metrics for NMOS and PMOS devices with multiple channel lengths. In the strong inversion region, mean relative current errors of \pgfkeysvalueof{/erro_pmos_current/short}\% and \pgfkeysvalueof{/erro_pmos_current/long}\% were achieved for PMOS devices, while NMOS devices reached \pgfkeysvalueof{/erro_nmos_current/short}\% and \pgfkeysvalueof{/erro_nmos_current/long}\%.
+	Cryogenic compact models are essential for designing CMOS interface circuits that operate near 4~K, such as the control and readout electronics of quantum processors, but the models of foundry process design kits are not valid at these temperatures, and extracting new ones usually relies on commercial tools or on manual, iterative tuning. This paper extends our conference work on design-oriented cryogenic BSIM4 models for the open-source Sky130 technology, calibrated automatically against the public 4~K measurements of the National Institute of Standards and Technology (NIST). The flow initializes the threshold voltage and slope factor with the SEKV-E extractor, simulates at an effective temperature of $-220$~$^\circ$C justified by the saturation of the subthreshold swing, refines groups of BSIM4 parameters by differential evolution with NGSPICE in the loop, and requires the final parameter set to pass the BSIM4 validity check. Four devices (NMOS with width/length $W/L=1.68/0.15$ and $1.68/1$~$\mu$m, PMOS with $0.42/0.18$ and $0.42/1$~$\mu$m) are validated against the measurements and against the original PDK simulated at 25 and $-220$~$^\circ$C, in saturation current, transconductance $g_m$, transconductance efficiency $g_m/I_D$, output characteristics, output conductance, and intrinsic gain. In strong inversion, the relative RMS current errors are \pgfkeysvalueof{/erro_nmos_current/short}\% and \pgfkeysvalueof{/erro_nmos_current/long}\% for the NMOS and \pgfkeysvalueof{/erro_pmos_current/short}\% and \pgfkeysvalueof{/erro_pmos_current/long}\% for the PMOS devices, and the current-weighted output-characteristic errors lie between \pgfkeysvalueof{/erro_idvd/nmos_long}\% and \pgfkeysvalueof{/erro_idvd/pmos_short}\%, against 39.6\% to 138\% for the PDK. The paper also reports a revision of the long-channel PMOS model of the conference version, whose parameters violated the BSIM4 validity ranges, and discusses the limitations that matter for design, including the cryogenic kink of the NMOS output conductance and the body effect, which is not calibrated.
 \end{abstract}
 	% INDEX TERMS SECTION
 \begin{indexterms}
-	Cryogenic CMOS; BSIM4; Sky130; differential evolution; quantum computing.
+	Cryogenic CMOS; BSIM4; Sky130; compact model calibration; differential evolution; quantum computing.
 \end{indexterms}
 	% BODY SECTIONS
 \section{Introduction}
 
-Quantum computing platforms require electronic interfaces capable of operating at cryogenic temperatures, typically near 4 K, for qubit control and readout \cite{b1,b2,b3,b16}. In this context, Cryo-CMOS has become an important technology for improving scalability and reducing interconnection complexity.
+Quantum computing platforms require electronic interfaces capable of operating at cryogenic temperatures, typically near 4~K, for qubit control and readout \cite{b1,b2,b3,b16}. Placing CMOS circuits inside the cryostat, close to the qubits, reduces the number of interconnections to room temperature and is a key step toward scalable systems.
 
-At such temperatures, conventional CMOS models no longer accurately describe transistor behavior. Relevant deviations arise in threshold voltage, carrier mobility, and subthreshold response, directly affecting circuit performance \cite{b4}. Therefore, accurate compact models at 4 K are essential.
+At such temperatures, conventional CMOS models no longer describe the transistor. The threshold voltage rises, the mobility changes, the subthreshold swing saturates far above its Boltzmann limit, and effects such as the kink appear in the output characteristics \cite{b4,b23}. Foundry process design kits (PDKs) are characterized for the industrial temperature range, so a designer of cryogenic circuits needs compact models extracted from cryogenic measurements.
 
-Recent studies introduced open-source calibration strategies for Sky130 CMOS at 4 K \cite{b5,b6,b7}. Although effective, generating calibrated models for multiple geometries still requires considerable user intervention.
+The open-source SkyWater 130-nm PDK (Sky130) \cite{b9,b10} is an attractive platform for this work: its models can be modified without legal restriction, and 4-K measurements of its transistors are publicly available \cite{b15,b16}. Open cryogenic models and calibration flows for Sky130 have been reported \cite{b6,b7,b21}, but generating calibrated models still depends on commercial extractors or on user-driven iterative tuning.
 
-This work presents a fully automated calibration methodology for geometry-specific cryogenic SPICE models in Sky130 CMOS, removing manual parameter initialization and enabling scalable model generation.
+In the conference version of this work \cite{b17}, we presented an automated calibration flow that generates design-oriented 4-K BSIM4 models for Sky130 from the NIST measurements, combining SEKV-E initialization with differential-evolution optimization in NGSPICE, and validated it on four devices. This paper extends that work with:
+\begin{compactitem}
+	\item a review of cryogenic compact modeling with the accuracy reported by related works (Section~II);
+	\item a detailed description of the methodology, including the effective simulation temperature, the SEKV-E initialization, the parameter groups, the optimization, and the BSIM4 validity check (Section~III);
+	\item formal definitions of the evaluation metrics (Section~IV);
+	\item an extended validation of the four devices against the original PDK at two temperatures, adding output characteristics, output conductance, and intrinsic gain to the transfer metrics of \cite{b17} (Section~V);
+	\item a revision of the long-channel PMOS model of \cite{b17} and a discussion of the limitations relevant to circuit design (Section~V).
+\end{compactitem}
 
-\section{Sky130 Cryogenic Modeling Challenges and Design-Oriented SPICE Model}
+\section{Background and Related Work}
 
-The Sky130 process design kit (PDK) has become one of the main open-source platforms for integrated circuit design, enabling reproducible research and reducing development costs \cite{b9,b10}. Its accessibility makes it attractive for emerging applications such as cryogenic control electronics for quantum computing systems.
+\subsection{Cryogenic Behavior of Bulk CMOS}
 
-However, at cryogenic temperatures (around 4 K), CMOS devices deviate significantly from room-temperature behavior. Experimental studies report threshold-voltage increase due to carrier freeze-out, mobility variations caused by the balance between reduced phonon scattering and increased impurity scattering, and non-ideal subthreshold behavior influenced by interface traps \cite{b4}. Additional effects such as the kink effect may also appear under specific bias conditions.
+Cooling a bulk MOSFET to 4~K changes most of the quantities a compact model describes. The threshold voltage increases: the intrinsic carrier concentration falls exponentially on cooling, which raises the Fermi potential \cite{b27}. The role of incomplete ionization of the dopants is debated. Incandela \emph{et al.} consider it the most likely explanation of the threshold saturation they measured \cite{b4}, whereas the physical models of Beckers \emph{et al.} find it secondary, the temperature dependence of the Fermi level dominating \cite{b26,b27}. The mobility results from a balance between phonon scattering, which decreases on cooling, and Coulomb and surface-roughness scattering, which then dominate. The subthreshold swing does not follow the Boltzmann limit $(kT/q)\ln 10$, about 0.83~mV/dec at 4.2~K, but saturates at values one to two orders of magnitude higher, an effect attributed to band tails and disorder at the interface \cite{b22,b23}. In the output characteristics, the holes generated by impact ionization at high drain voltage flow through a substrate whose resistance rises with carrier freeze-out, raising the local body potential and lowering the threshold voltage; the result is a kink, a sudden increase of the drain current and of the output conductance \cite{b4}. These effects modify the drain current, the transconductance, and the output resistance, so the room-temperature models of the Sky130 PDK are not adequate for 4-K circuit design.
 
-As a result, key characteristics such as drain current, transconductance, and output resistance are strongly modified, making the standard room-temperature BSIM models included in the Sky130 PDK insufficient for accurate 4 K circuit design.
+\subsection{Cryogenic Compact Models and Calibration Flows}
 
-To address this limitation, the proposed cryogenic model is based on the standard BSIM4 formulation \cite{b13,b14}, with selective recalibration of parameters rather than introducing a new compact model. This preserves compatibility with conventional design flows and industrial SPICE environments.
+Two approaches coexist. The first modifies the compact model itself, adding the physics of the cryogenic regime \cite{b26,b7}. The second keeps a standard model, such as BSIM4 \cite{b13}, and recalibrates its parameters against cryogenic measurements \cite{b4,b11}, which preserves compatibility with conventional simulators and design flows. This work follows the second approach.
 
-For physically consistent initialization, the SEKV-E methodology \cite{b12} is employed to estimate key device parameters before optimization. Similar strategies are used in recent cryogenic frameworks such as IceMOS \cite{b6}, since direct optimization without suitable starting points often leads to poor convergence or non-physical solutions.
+Recalibration has been carried out with commercial extractors \cite{b19,b21}, with parameter prediction by neural networks followed by local optimization \cite{b20}, and with open tools. For Sky130, Akturk \emph{et al.} \cite{b7} measured devices at 4~K, the measurements behind the public NIST dataset \cite{b15}, and extracted scalable model cards. IceMOS \cite{b5} is an open Python tool that automates the repetitive tasks of a 4-K calibration while the user selects the parameters and adjusts their values iteratively; its Sky130 version \cite{b6} adds an SEKV-E initialization and validates two devices. Beall \emph{et al.} \cite{b21} built a 77-K BSIM4 model for Sky130 with a commercial extractor. Evolutionary algorithms have been used to automate compact-model extraction at room temperature \cite{b25}, replacing part of the expert sequencing of the standard extraction.
 
-Starting from this initialization, a fully automated optimization flow refines the BSIM4 parameters directly from experimental measurements, eliminating manual tuning and enabling scalable calibration across multiple geometries.
+Table~\ref{tab:literature} summarizes the errors reported by these works. Metrics, regions, and devices differ, so the comparison is only indicative. It shows that calibrations at 4~K, whether commercial, assisted by neural networks, or interactive, report errors from a few percent up to about 10\% in strong inversion.
 
-The proposed model is design-oriented, prioritizing accuracy in moderate and strong inversion regions, consistent with prior design-focused cryogenic modeling approaches \cite{b11}.
+\begin{table*}[t]\footnotesize
+	\centering
+	\caption{Fitting errors reported in cryogenic compact modeling works}
+	\label{tab:literature}
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|l|l|c|l|l|l|}
+		\hline
+		\textbf{Work} & \textbf{Technology} & \textbf{$T$} & \textbf{Model} & \textbf{Fitting} & \textbf{Error} \\ \hline
+		\cite{b4} & 160 and 40 nm & 4 K & MOS11, PSP & n.r. & $<10\%^{a}$ \\ \hline
+		\cite{b19} & 65 nm & 4 K & BSIM4 & IC-CAP & 1.60--3.91\%$^{b}$ \\ \hline
+		\cite{b20} & $L$ = 90--250 nm & 4 K & BSIM4 & NN + LM & 6.6\%$^{c}$ \\ \hline
+		\cite{b6} & Sky130 & 4 K & BSIM4 & IceMOS & 1.11--9.49\%$^{d}$ \\ \hline
+		\cite{b21} & Sky130 & 77 K & BSIM4 & Mystic & $\approx$20\%$^{e}$ \\ \hline
+		This work & Sky130 & 4 K & BSIM4 & DE (automated) & 0.42--4.87\%$^{f}$ \\ \hline
+	\end{tabular}
+
+	\vspace{1mm}
+	\parbox{\textwidth}{\scriptsize $^{a}$Relative error at each bias point, weak and strong inversion. $^{b}$RMS error normalized by the measured current, $I_D$--$V_{GS}$ and $I_D$--$V_{DS}$. $^{c}$Lowest RMSE, mean below 15\%. $^{d}$Median current error, $V_{GS}$ from 0.8 to 1.8 V, interactive fitting. $^{e}$Mean relative RMS error. $^{f}$Relative RMS current error in strong inversion, saturation transfer curve, four devices (Section~V). n.r.: not reported; NN + LM: neural network followed by Levenberg--Marquardt.}
+\end{table*}
 
 \section{Calibration Methodology}
 
-The calibration process uses experimental data from the NIST Sky130 cryogenic dataset \cite{b15}, which provides transistor measurements at 4 K for different device geometries. These data are adopted as references for model fitting.
+Fig.~\ref{fig:flow} summarizes the calibration flow, detailed in this section.
 
-The proposed methodology follows three main stages: parameter initialization, grouped calibration, and model evaluation.
-
-\subsection{Initial Parameter Estimation}
-
-Initial values for key parameters, such as threshold voltage ($V_{th}$) and slope factor ($n$), are extracted from transfer characteristics using linear fitting in the subthreshold region. These estimates are further refined through the SEKV-E methodology \cite{b12}, providing physically meaningful starting points.
-
-Temperature-dependent parameters (UTE, KT1, KT2, UA1, UB1) are fixed to zero during calibration, following common cryogenic modeling practices \cite{b4,b6}. This simplifies the model and improves optimization stability.
-
-\subsection{Parameter Grouping Strategy}
-
-Because BSIM4 contains many coupled parameters, calibration is divided into parameter groups according to physical impact. This reduces search complexity and improves convergence.
-
-The groups target threshold behavior, mobility degradation, saturation effects, short-channel behavior, and additional PMOS corrections. Table~\ref{tab:param_groups} summarizes the adopted grouping.
-
-\begin{table}[h]\tiny
+\begin{figure}[t]
 	\centering
-	\caption{Summary of parameter groups used in the calibration process}
-	\label{tab:param_groups}
-	\begin{tabular}{|c|l|}
-		\hline
-		\textbf{Group} & \textbf{Parameters} \\
-		\hline
-		Threshold / Transition & vth0, nfactor, voff, u0 \\
-		\hline
-		Body / Shape & k1, k2, ua, ub \\
-		\hline
-		Drive / Saturation & vsat, rdsw \\
-		\hline
-		Short-Channel / Output & a0, a1, a2, pclm \\
-		\hline
-		PMOS Additional & uc \\
-		\hline
-	\end{tabular}
-\end{table}
-
-This block-based strategy avoids simultaneous optimization of all variables, which often leads to poor convergence in nonlinear problems.
-
-\subsection{Iterative Optimization}
-
-Starting from the initialized set, parameters are refined through differential evolution. Candidate solutions are generated, inserted into the technology file, and simulated in NGSPICE through PySpice.
-
-The optimizer minimizes the root-mean-square error (RMSE) between simulated and measured currents. Only current values above 1 pA are considered inside the cost function to reduce noise sensitivity and numerical issues in deep subthreshold.
-
-Different calibration modes were investigated. The first used combined $I_D$--$V_G$ data at $V_{DS}=1.8\,\mathrm{V}$ and $0.1\,\mathrm{V}$, while the second used $I_D$--$V_G$ at $V_{DS}=1.8\,\mathrm{V}$ together with $I_D$--$V_D$ at $V_{GS}=1.8\,\mathrm{V}$. In both cases, higher weight was assigned to saturation-region data.
-
-No single strategy was consistently optimal for all geometries. Therefore, the framework supports multiple calibration modes, allowing selection of the best fit for each device.
-
-\subsection{Evaluation Criteria}
-
-While the root-mean-square error (RMSE) serves as the cost function during the iterative optimization, the final model accuracy reported in Section IV is quantified using the Mean Absolute Percentage Error (MAPE). This provides a normalized relative error metric, allowing for a consistent evaluation of the model's performance across different current magnitudes and device geometries.
-
-\section{Experimental Results and Validation}
-
-The proposed cryogenic SPICE models were validated against measured 4 K data for multiple geometries. NMOS devices with $W=1.68\,\mu m$ and $L=0.15\,\mu m$, $1.00\,\mu m$, and PMOS devices with $W=0.42\,\mu m$ and $L=0.18\,\mu m$, $1.00\,\mu m$ were analyzed.
-
-Model accuracy was evaluated through $I_D$--$V_G$, $I_D$--$V_D$, $g_m$, and $g_m/I_D$, covering weak, moderate, and strong inversion.
-
-\subsection{Transfer Characteristics}
-
-The PFET curves in Fig.~\ref{fig:IDVG_PFET}, obtained with $V_{SD}=1.8\,\mathrm{V}$, show excellent agreement in moderate and strong inversion, with larger deviations only in deep subthreshold. Mean current errors were \pgfkeysvalueof{/erro_pmos_current/short}\,\% and \pgfkeysvalueof{/erro_pmos_current/long}\,\% for $L=0.18\,\mu m$ and $1.00\,\mu m$, respectively.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\columnwidth]{fig/publication_pfet_saturacao_w0p42_l0p18.png}
-
-	\includegraphics[width=\columnwidth]{fig/publication_pfet_saturacao_w0p42_l1.png}
-	\caption{Measured and simulated transfer characteristics ($I_D$--$V_G$) for PFET devices at 4 K, shown in linear and logarithmic scales for different channel lengths.}
-	\label{fig:IDVG_PFET}
+	\begin{tikzpicture}[
+		font=\scriptsize, node distance=3mm,
+		box/.style={draw, rounded corners=1pt, align=center, text width=36mm, minimum height=6mm, inner sep=2.5pt},
+		io/.style={box, fill=black!6},
+		opt/.style={box, dashed},
+		side/.style={draw, rounded corners=1pt, align=center, text width=17mm, inner sep=2.5pt},
+		lab/.style={font=\tiny, inner sep=1pt},
+		arr/.style={-{Stealth[length=1.6mm]}, semithick}]
+		\node[io] (data) {NIST 4-K measurements\\$I_D$--$V_{GS}$ and $I_D$--$V_{DS}$};
+		\node[box, below=of data] (ekv) {SEKV-E extraction\\of $V_{T0}$ and $n$};
+		\node[box, below=of ekv] (bounds) {Search ranges: \texttt{vth0}\\around $V_{T0}$, others fixed};
+		\node[box, below=of bounds] (de) {Parameter group $g$\\DE \texttt{rand/1/bin},\\then DE \texttt{best/1/bin}};
+		\node[side, right=13mm of de] (spice) {Model card\\NGSPICE\\at $-220$~$^\circ$C\\cost vs.\ data};
+		\node[box, below=of de] (next) {Next group; repeat cycles\\(fixed number or no gain)};
+		\node[opt, below=of next] (lr) {Local refinement\\(variant-dependent)};
+		\node[box, below=of lr] (check) {BSIM4 parameter check\\and metrics (Section~IV)};
+		\node[io, below=of check] (out) {Candidate model,\\promoted by the user};
+		\draw[arr] (data) -- (ekv);
+		\draw[arr] (ekv) -- (bounds);
+		\draw[arr] (bounds) -- (de);
+		\draw[arr] ([yshift=2mm]de.east) -- node[lab, above]{candidate} ([yshift=2mm]spice.west);
+		\draw[arr] ([yshift=-2mm]spice.west) -- node[lab, below]{cost} ([yshift=-2mm]de.east);
+		\draw[arr] (de) -- (next);
+		\draw[arr] (next.west) -- ++(-3mm,0) |- (de.west);
+		\draw[arr] (next) -- (lr);
+		\draw[arr] (lr) -- (check);
+		\draw[arr] (check) -- (out);
+		\draw[arr] (data.east) -| node[lab, pos=0.7, right, align=left]{measured\\sweeps} (spice.north);
+	\end{tikzpicture}
+	\caption{Calibration flow. Each parameter group of Table~\ref{tab:param_groups} is optimized by two DE stages with NGSPICE in the loop, at the effective temperature. The dashed step depends on the calibration variant (Section~III-E); the final model must pass the BSIM4 parameter check.}
+	\label{fig:flow}
 \end{figure}
 
-The NFET curves in Fig.~\ref{fig:IDVG_NFET}, obtained with $V_{DS}=1.8\,\mathrm{V}$, also show accurate fitting over the main operating region. Mean current errors were \pgfkeysvalueof{/erro_nmos_current/short}\,\% and \pgfkeysvalueof{/erro_nmos_current/long}\,\% for $L=0.15\,\mu m$ and $1.00\,\mu m$, respectively.
+\subsection{Measured Data and Devices}
 
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\columnwidth]{fig/publication_nfet_saturacao_w1p68_l0p15.png}
+The calibration uses the NIST Sky130 cryogenic dataset \cite{b15}, which provides DC measurements at 4~K of \texttt{nfet\_01v8} and \texttt{pfet\_01v8} transistors of many geometries: transfer characteristics ($I_D$--$V_{GS}$) at $|V_{DS}|=0.1$ and 1.8~V with 10-mV gate steps, and output characteristics ($I_D$--$V_{DS}$) at $|V_{GS}|=0.9$, 1.2, 1.5, and 1.8~V with 20-mV drain steps. The dataset also contains transfer curves with body bias, $V_{BS}$ from $-1.2$ to $+0.3$~V for the NMOS and the mirrored values for the PMOS, and output curves at $|V_{BS}|=1$~V; this work uses only the curves with zero source and body bias (Section~V-F).
 
-	\includegraphics[width=\columnwidth]{fig/publication_nfet_saturacao_w1p68_l1.png}
-	\caption{Measured and simulated transfer characteristics ($I_D$--$V_G$) for NFET devices at 4 K, shown in linear and logarithmic scales for different channel lengths.}
-	\label{fig:IDVG_NFET}
-\end{figure}
-
-\subsection{Output Characteristics}
-
-Fig.~\ref{fig:IDVD} compares measured and simulated $I_D$--$V_D$ curves for short-channel devices under several $V_{GS}$ values. Good agreement is observed in both linear and saturation regions.
-
-\begin{figure}[h]
-	\centering
-	\begin{minipage}[t]{0.48\columnwidth}
-		\centering
-		\includegraphics[width=\linewidth]{fig/publication_pfet_saturacao_w0p42_l0p18_idvd.png}\\
-		{\tiny (a)}
-	\end{minipage}
-	\hfill
-	\begin{minipage}[t]{0.48\columnwidth}
-		\centering
-		\includegraphics[width=\linewidth]{fig/publication_nfet_saturacao_w1p68_l0p15_idvd.png}\\
-		{\tiny (b)}
-	\end{minipage}
-	\caption{Measured and simulated output characteristics ($I_D$--$V_D$) at 4 K for short-channel devices under different $V_{G}$ bias conditions: (a) PFET and (b) NFET.}
-	\label{fig:IDVD}
-\end{figure}
-
-\subsection{Transconductance}
-
-Fig.~\ref{fig:gmVG} shows that the calibrated models reproduce the measured $g_m$ behavior for $V_{SD}=1.8\,\mathrm{V}$ (or $V_{DS}=1.8\,\mathrm{V}$ for NFET), including the turn-on transition and peak values. Mean relative errors were \pgfkeysvalueof{/erro_pmos_gm/short}\,\%, \pgfkeysvalueof{/erro_pmos_gm/long}\,\%, \pgfkeysvalueof{/erro_nmos_gm/short}\,\%, and \pgfkeysvalueof{/erro_nmos_gm/long}\,\% for cases (a)--(d), respectively.
-
-\begin{figure}[h]
-	\centering
-	\begin{minipage}[t]{0.48\columnwidth}
-		\centering
-		\includegraphics[width=\linewidth]{fig/publication_pfet_saturacao_w0p42_l0p18gmvg.png}\\
-		{\tiny (a)}
-	\end{minipage}
-	\hfill
-	\begin{minipage}[t]{0.48\columnwidth}
-		\centering
-		\includegraphics[width=\linewidth]{fig/publication_pfet_saturacao_w0p42_l1gmvg.png}\\
-		{\tiny (b)}
-	\end{minipage}
-
-	\vspace{2mm}
-
-	\begin{minipage}[t]{0.48\columnwidth}
-		\centering
-		\includegraphics[width=\linewidth]{fig/publication_nfet_saturacao_w1p68_l0p15gmvg.png}\\
-		{\tiny (c)}
-	\end{minipage}
-	\hfill
-	\begin{minipage}[t]{0.48\columnwidth}
-		\centering
-		\includegraphics[width=\linewidth]{fig/publication_nfet_saturacao_w1p68_l1gmvg.png}\\
-		{\tiny (d)}
-	\end{minipage}
-	\caption{Measured and simulated transconductance ($g_m$--$V_G$) characteristics for PFET and NFET devices at 4 K.}
-	\label{fig:gmVG}
-\end{figure}
-
-Fig.~\ref{fig:gmID} shows the $g_m/I_D$ characteristics obtained for $V_{SD}=1.8\,\mathrm{V}$ (or $V_{DS}=1.8\,\mathrm{V}$ for NFET). Only data points with $I_{SD}>1\,\mathrm{pA}$ (or $I_{DS}>1\,\mathrm{pA}$ for NFET) are displayed, in order to exclude ultra-low-current regions where numerical convergence issues may arise in circuit simulation. Relative to the standard room-temperature Sky130 model, the calibrated 4 K model clearly reproduces the pronounced boost in $g_m/I_D$ in moderate inversion, in line with the cryogenic behavior reported in \cite{b4}.
-
-\begin{figure}[h]
-	\centering
-	\begin{minipage}[t]{0.48\columnwidth}
-		\centering
-		\includegraphics[width=\linewidth]{fig/publication_pfet_saturacao_w0p42_l0p18gmid.png}
-	\end{minipage}
-	\hfill
-	\begin{minipage}[t]{0.48\columnwidth}
-		\centering
-		\includegraphics[width=\linewidth]{fig/publication_pfet_saturacao_w0p42_l1gmid.png}
-	\end{minipage}
-
-	\vspace{2mm}
-
-	\begin{minipage}[t]{0.48\columnwidth}
-		\centering
-		\includegraphics[width=\linewidth]{fig/publication_nfet_saturacao_w1p68_l0p15gmid.png}
-	\end{minipage}
-	\hfill
-	\begin{minipage}[t]{0.48\columnwidth}
-		\centering
-		\includegraphics[width=\linewidth]{fig/publication_nfet_saturacao_w1p68_l1gmid.png}
-	\end{minipage}
-	\caption{$g_m/I_D$ characteristics obtained from simulation for PFET and NFET devices, comparing the standard Sky130 room-temperature model with the calibrated 4 K model. The results highlight the variation in transconductance efficiency under cryogenic operation for different channel lengths.}
-	\label{fig:gmID}
-\end{figure}
-
-\subsection{Discussion}
-
-Table~\ref{tab:comparison} summarizes the comparison with IceMOS \cite{b6}. The proposed methodology achieves competitive and, in some cases, lower errors in strong inversion. For the short-channel PMOS device, current and $g_m$ errors reached 0.42\% and 1.52\%, outperforming the IceMOS reference. NMOS current errors remained below 2.2\% for all evaluated geometries.
-
-These results reflect the adopted calibration strategy, which prioritizes moderate and strong inversion, the most relevant region for analog and mixed-signal design. Larger discrepancies remain concentrated in weak inversion.
-
-For comparison purposes, strong inversion was defined using $V_{OV}=150$ mV, a practical criterion widely used in analog design, although inversion level is more rigorously described by the inversion coefficient ($IC$) \cite{b14}. All values in Table~\ref{tab:comparison} were computed using this same criterion.
+The four devices of \cite{b17} are kept: NMOS with $W=1.68$~$\mu$m and $L=0.15$ and 1~$\mu$m, and PMOS with $W=0.42$~$\mu$m and $L=0.18$ and 1~$\mu$m. Sky130 is a binned model: each device falls in one PDK bin, a range of $W$ and $L$ with its own parameter set, and each calibration replaces the parameters of that bin. Table~\ref{tab:devices} lists the bins and the SEKV-E parameters of each device.
 
 \begin{table}[htbp]\tiny
 	\centering
-	\caption{Comparison of mean relative error between the proposed calibrated model and IceMOS for drain current (\(I_D\)) and transconductance (\(g_m\)) at 4 K, considering PFET and NFET devices with different geometries.}
+	\caption{Calibrated devices, PDK bins, SEKV-E parameters, and calibration variant}
+	\label{tab:devices}
+	\renewcommand{\arraystretch}{1.2}
+	\resizebox{\columnwidth}{!}{%
+	\begin{tabular}{|c|c|c|c|c|l|}
+		\hline
+		\textbf{Device} & \textbf{$W/L$ ($\mu$m)} & \textbf{Bin} & \textbf{$|V_{T0}|$ (V)} & \textbf{$n$} & \textbf{Variant} \\ \hline
+		\multirow{2}{*}{NMOS} & 1.68/0.15 & 44 & 0.738 & 27.1 & Adaptive blocks \\ \cline{2-6}
+		 & 1.68/1.00 & 40 & 0.734 & 16.2 & Adaptive blocks \\ \hline
+		\multirow{2}{*}{PMOS} & 0.42/0.18 & 106 & 1.083 & 91.6 & Joint, windows \\ \cline{2-6}
+		 & 0.42/1.00 & 103 & 1.359 & 48.5 & Regional + local \\ \hline
+	\end{tabular}}
+\end{table}
+
+\subsection{Effective Simulation Temperature}
+
+BSIM4 derives the subthreshold behavior from the thermal voltage $kT/q$. Evaluated literally at 4~K, $kT/q\approx0.34$~mV gives a swing floor of $n\times0.83$~mV/dec, far below the swing of real silicon. Below a critical temperature $T_c$, typically around 50~K, the measured swing stops decreasing and saturates at a value equivalent to the Boltzmann limit evaluated at $T_c$, $SS\approx n\,(kT_c/q)\ln 10$ \cite{b22}. Representing this saturation by an effective temperature is a usual empirical treatment in compact models \cite{b22}; Incandela \emph{et al.} calibrated their 4-K models with the simulator set to $-200$~$^\circ$C to match the measured swing and with the temperature parameters of the model set to zero \cite{b4}.
+
+The IceMOS flow simulates at $-269$~$^\circ$C, that is, 4~K \cite{b5}. At this temperature, the thermal voltage contributes almost nothing to the swing, which must then be reproduced by the slope factor: at $|V_{DS}|=0.1$~V and between 10~pA and 100~nA, the four devices of this work have swings of about 10 to 125~mV/dec, which at 4~K require $n\approx12$ to 150. All simulations of this work, in calibration and validation, therefore run at an effective temperature of $-220$~$^\circ$C ($\approx53$~K), close to $T_c$, where the swing floor of the model is $n\times10.5$~mV/dec, close to the steepest measured swing, and the same swings require $n\approx1$ to 12. The PDK cards keep their nominal temperature $T_{NOM}=30$~$^\circ$C. In the four models, the temperature coefficients \texttt{ute}, \texttt{kt1}, \texttt{kt2}, \texttt{ua1}, and \texttt{ub1} are set to zero, as in IceMOS \cite{b6}. Only their base values are zeroed; their length, width, and area binning terms keep the PDK values, so part of the temperature scaling of the PDK still acts at $-220$~$^\circ$C. Since calibration and validation run at the same temperature, this scaling is absorbed by the fit, but the values written in the cards are not those in use. The calibrated parameters are thus \emph{effective} values, extracted from 4-K measurements, with no guarantee of physical meaning (Section~V-F). Since they are refitted at the same effective temperature, the DC operating point is set by the recalibrated parameters, whereas $kT$ still enters directly in the subthreshold swing and in thermal noise, which lie outside the reach of the calibration.
+
+\subsection{Parameter Initialization with SEKV-E}
+
+Optimization without suitable starting points often converges poorly or to non-physical solutions, so the threshold voltage $V_{T0}$ and the slope factor $n$ are first extracted with SEKV-E \cite{b12}, as also done in IceMOS \cite{b6}. SEKV-E fits the simplified EKV model with velocity saturation to the measured saturation transfer curve:
+\begin{equation}
+V_{GS}=V_{T0}+n\,U_T\left(2q+\ln q\right),
+\label{eq:ekv}
+\end{equation}
+\begin{equation}
+q=\frac{\sqrt{4\,IC+(1+\lambda_c\,IC)^2}-1}{2},
+\label{eq:q}
+\end{equation}
+where $q$ is the normalized inversion charge, $IC=I_D/I_{spec}$ the inversion coefficient, $I_{spec}$ the specific current, $\lambda_c$ the velocity-saturation parameter, and $U_T$ the thermal voltage at the measurement temperature. The large values of $n$ in Table~\ref{tab:devices} reflect the saturated swing, but $n$ is a fit parameter of the whole transfer curve, not a measurement of the swing: $n\,U_T\ln 10$ gives 13.5 to 76~mV/dec at 4.2~K, of the same order as the local swings measured at $|V_{DS}|=1.8$~V between 10~pA and 10~nA, 5 to 68~mV/dec, but not equal to them; for the NMOS 1.68/0.15, it gives 22.6~mV/dec, against 5 to 16~mV/dec measured. $V_{T0}$ centers the search range of \texttt{vth0} and defines the strong-inversion window of the metrics (Section~IV). The slope factor $n$ is written as the initial value of \texttt{nfactor}, $n$ for the NMOS and $n/3$ for the PMOS. This is an empirical choice: in BSIM4, the swing depends on \texttt{nfactor} through the depletion and oxide capacitances and is evaluated at the effective temperature of Section~III-B, so $n$ serves only as a starting point.
+
+\subsection{Parameter Groups and Search Bounds}
+
+BSIM4 has many coupled parameters, and optimizing all of them at once often fails to converge. The calibration therefore divides them into groups by physical effect and optimizes one group at a time while the others stay fixed. Table~\ref{tab:param_groups} lists, for each device, the parameters whose final value differs from the PDK bin; all others keep the values of the bin. The set depends on the device and on the calibration variant (Section~III-E). For the short-channel NMOS, the adaptive-blocks variant writes fixed initial values of \texttt{a1}, \texttt{a2}, and \texttt{pclm} ($-0.1$, 0.5, and 0.16), which the optimization kept. The regional variant used for the PMOS 0.42/1 can also adjust the short-channel, drain-induced barrier lowering (DIBL), and output-resistance parameters, but the accepted model keeps their PDK values, as it does for \texttt{vsat}; no model of this work changes the DIBL group.
+
+\begin{table}[htbp]\tiny
+	\centering
+	\caption{Parameters whose final value differs from the PDK bin}
+	\label{tab:param_groups}
+	\renewcommand{\arraystretch}{1.2}
+	\resizebox{\columnwidth}{!}{%
+	\begin{tabular}{|l|l|c|c|c|c|}
+		\hline
+		\multirow{2}{*}{\textbf{Group}} & \multirow{2}{*}{\textbf{Parameters}} & \multicolumn{2}{c|}{\textbf{NMOS}} & \multicolumn{2}{c|}{\textbf{PMOS}} \\ \cline{3-6}
+		 & & \textbf{0.15} & \textbf{1} & \textbf{0.18} & \textbf{1} \\ \hline
+		Threshold / transition & vth0, nfactor, voff, u0 & $\times$ & $\times$ & $\times$ & $\times$ \\ \hline
+		Body effect / mobility & k1, k2, ua, ub & $\times$ & $\times$ & $\times$ & $\times$ \\ \cline{2-6}
+		 & uc & & & $\times$ & $\times$ \\ \hline
+		Drive / saturation & rdsw & $\times$ & $\times$ & $\times$ & $\times$ \\ \cline{2-6}
+		 & vsat & $\times$ & $\times$ & $\times$ & \\ \hline
+		Short channel / output & a1, a2, pclm & f & & & \\ \hline
+		\multicolumn{2}{|r|}{Number of parameters changed} & 13 & 10 & 11 & 10 \\ \hline
+	\end{tabular}}
+
+	\vspace{1mm}
+	\parbox{\columnwidth}{\tiny $\times$: optimized. f: fixed initial value written by the variant and kept by the optimization. Parameters not listed, including \texttt{a0}, \texttt{ags}, and the DIBL and output-resistance group (\texttt{eta0}, \texttt{pdiblc1}, \texttt{pdiblc2}, \texttt{drout}, \texttt{pvag}), keep the PDK values. The base values of \texttt{ute}, \texttt{kt1}, \texttt{kt2}, \texttt{ua1}, and \texttt{ub1} are zero (Section~III-B). \texttt{k1} and \texttt{k2} are fitted at zero body bias only (Section~V-F).}
+\end{table}
+
+The search ranges of the main parameters are not derived from the PDK. The range of \texttt{vth0} is centered on the SEKV-E $V_{T0}$, with a half-width of 0.15 to 0.32~V depending on the variant, and the other parameters of Table~\ref{tab:param_groups} are searched in fixed ranges, the same for every bin of a device type, which do not follow the sign of the PDK value. Only the short-channel and output parameters of the regional variant (PMOS 0.42/1) are searched in windows around the PDK value of the bin. Because Sky130 is binned, the value BSIM4 uses is not the written one but the written value plus length, width, and area terms of the bin; a written value inside a plausible range can thus produce an effective value outside the valid range. Every model is therefore simulated with the BSIM4 parameter check enabled, and the four models of this work pass it.
+
+\subsection{Differential-Evolution Optimization}
+
+Each group is optimized by differential evolution (DE) \cite{b24}. For each candidate, the parameters are written into the model card, NGSPICE~41 simulates the measured sweeps through PySpice, and the cost compares simulated and measured currents. Only points above 1~pA enter the cost, which removes the instrument noise floor. Each group runs two DE stages: \texttt{rand/1/bin} for exploration and then \texttt{best/1/bin} for exploitation, seeded with the result of the first stage, with small populations and few generations, since each evaluation costs several circuit simulations. Groups are revisited in cycles, up to a fixed number of cycles or until the error stops improving.
+
+As stated in \cite{b17}, no single sequence of groups and cost was the best for every device, and the flow supports several calibration variants that share the initialization, the bounds, the DE engine, and the validity check, and differ in the cost and in the order of the groups. The variant that produced each model is listed in Table~\ref{tab:devices}:
+\begin{compactitem}
+	\item \emph{Adaptive blocks} (both NMOS): the cost combines the transfer curves at $|V_{DS}|=0.1$ and 1.8~V, with weights of 0.5 and 3.5, and a rule-based decider reads the errors per region of the transfer curve (swing, transition, high current) and picks the next group. The output characteristics are not used in the cost, so for these devices they are an independent validation.
+	\item \emph{Joint, windows} (PMOS 0.42/0.18): the cost combines the saturation transfer curve, with weight 3, and the output curve at $|V_{GS}|=1.8$~V; after two cycles over three groups, the parameters are refined in successively narrower windows around the best solution, and a final Powell search adjusts \texttt{k1} and \texttt{k2}.
+	\item \emph{Regional + local refinement} (PMOS 0.42/1): the cost adds to the transfer-curve error 2.5 times the current-weighted error of the output curves at $|V_{GS}|=1.2$, 1.5, and 1.8~V, both normalized at the start of each group. The regional run that seeded this model also let \texttt{ute}, \texttt{kt1}, \texttt{ua1}, and \texttt{ub1} vary; the final model has them at zero, as the other three. A final local refinement runs a multi-start Nelder--Mead search on the coupled (\texttt{vth0}, \texttt{k1}, \texttt{k2}, \texttt{u0}) group. For this device, the upper bound of \texttt{u0} was widened by the user.
+\end{compactitem}
+In every case, the calibration ends as a candidate model, measured by the metrics of Section~IV; the user only decides whether it replaces the current model of the bin.
+
+\section{Evaluation Metrics}
+
+Let $I_{\mathrm{sim},k}$ and $I_{\mathrm{meas},k}$ be the simulated and measured currents at point $k$ of a curve, and $\mathcal{M}$ the set of points considered. The current error of a curve is the relative RMS error, in percent:
+\begin{equation}
+\varepsilon=100\sqrt{\frac{1}{|\mathcal{M}|}\sum_{k\in\mathcal{M}}\left(\frac{I_{\mathrm{sim},k}-I_{\mathrm{meas},k}}{I_{\mathrm{meas},k}}\right)^{2}}.
+\label{eq:rms}
+\end{equation}
+For the saturation transfer curve, $\mathcal{M}$ holds the strong-inversion points, $|V_{GS,k}|\ge|V_{T0}|+0.15$~V with $|I_{\mathrm{meas},k}|>1$~pA. This overdrive of 150~mV is a practical criterion of analog design, although the inversion level is more rigorously described by the inversion coefficient \cite{b14}. This is the current error reported in \cite{b17}, where it was called a mean absolute percentage error; the values are the RMS error of \eqref{eq:rms}. The transconductance error is the mean absolute relative error of $g_m=\partial I_D/\partial V_{GS}$ on the same points, computed by finite differences on the measured gate grid for both curves, as in \cite{b17}.
+
+For each output curve $j$, \eqref{eq:rms} is taken over the points with $|I_{\mathrm{meas},k}|\ge0.1\,\hat I_j$, where $\hat I_j$ is the peak measured current of the curve. A curve whose peak is below 1~pA, or below $10^{-3}$ of the peak of the family, lies at the noise floor and is discarded; this happens for the $|V_{GS}|=0.9$~V curve of both PMOS devices, whose threshold at 4~K is higher, and for the 1.2~V curve of the PMOS 0.42/1. The curves are aggregated with square-root current weights,
+\begin{equation}
+\varepsilon_w=\frac{\sum_j\sqrt{\hat I_j}\,\varepsilon_j}{\sum_j\sqrt{\hat I_j}},
+\label{eq:weighted}
+\end{equation}
+because a plain mean would weigh a curve of a few microamperes as much as one of a milliampere. The output conductance $g_{ds}=\partial I_D/\partial V_{DS}$ is obtained from the output curves with a Savitzky--Golay derivative (window of 9 points, second order), applied equally to measured and simulated curves, and its error is \eqref{eq:rms} over the saturation points, $|V_{DS}|\ge|V_{GS}|-|V_{T0}|+0.1$~V and $|I_D|\ge0.1\,\hat I_j$.
+
+The models are design-oriented and target operation in saturation. The transfer curve at $|V_{DS}|=0.1$~V enters some cost functions with a small weight, to keep the fit consistent, but it is not a validation target of this work.
+
+\section{Results and Discussion}
+
+The calibrated models are compared with the measurements and with two baselines: the original Sky130 PDK, typical corner, simulated at 25~$^\circ$C, which is what a designer would use without a cryogenic model, and the same PDK simulated at $-220$~$^\circ$C, the effective temperature of the calibration, with the temperature coefficients of the PDK. The second baseline tests whether extrapolating the PDK to low temperature would be enough.
+
+\subsection{Transfer Characteristics and Transconductance}
+
+Fig.~\ref{fig:transfer} shows the saturation transfer curves, the transconductance, and $g_m/I_D$ of the four devices, and Table~\ref{tab:baseline} summarizes the errors. In strong inversion, the calibrated models reproduce the measured current with errors of \pgfkeysvalueof{/erro_nmos_current/short}\% and \pgfkeysvalueof{/erro_nmos_current/long}\% for the NMOS and \pgfkeysvalueof{/erro_pmos_current/short}\% and \pgfkeysvalueof{/erro_pmos_current/long}\% for the PMOS devices, against 23.9\% to 98.6\% for the PDK. Extrapolating the PDK to $-220$~$^\circ$C does not help: the temperature model of the PDK, built for the industrial range, overestimates the NMOS current and transconductance, with errors of up to 98.6\% and 88.3\% for the NMOS 1.68/1, and underestimates the PMOS current. At 25~$^\circ$C, the PDK underestimates the threshold voltage, which at 4~K is much higher, especially for the PMOS devices.
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=\textwidth]{fig/jics_transfer.pdf}
+	\caption{Saturation transfer characteristics at 4~K ($|V_{DS}|=1.8$~V): drain current in logarithmic scale (top), transconductance (middle), and $g_m/I_D$ (bottom), for the four devices. The shaded area marks the strong-inversion region used by the metrics, $|V_{GS}|\ge|V_{T0}|+0.15$~V.}
+	\label{fig:transfer}
+\end{figure*}
+
+\begin{table}[htbp]\tiny
+	\centering
+	\caption{Errors (\%) of the original PDK at 25 and $-220$~$^\circ$C and of the calibrated model against the 4-K measurements}
+	\label{tab:baseline}
+	\renewcommand{\arraystretch}{1.2}
+	\resizebox{\columnwidth}{!}{%
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		\textbf{Device} & \textbf{Metric} & \textbf{PDK 25~$^\circ$C} & \textbf{PDK $-220$~$^\circ$C} & \textbf{Calibrated} \\ \hline
+		\multirow{3}{*}{\shortstack{NMOS\\1.68/0.15}} & $I_D$ sat. & 23.9 & 46.3 & \textbf{1.81} \\ \cline{2-5}
+		 & $g_m$ & 14.1 & 45.0 & \textbf{2.87} \\ \cline{2-5}
+		 & $I_D$--$V_{DS}$, $\varepsilon_w$ & 41.0 & 64.2 & \textbf{9.7} \\ \hline
+		\multirow{3}{*}{\shortstack{NMOS\\1.68/1}} & $I_D$ sat. & 30.6 & 98.6 & \textbf{2.19} \\ \cline{2-5}
+		 & $g_m$ & 39.5 & 88.3 & \textbf{2.69} \\ \cline{2-5}
+		 & $I_D$--$V_{DS}$, $\varepsilon_w$ & 46.5 & 125.3 & \textbf{9.5} \\ \hline
+		\multirow{3}{*}{\shortstack{PMOS\\0.42/0.18}} & $I_D$ sat. & 87.4 & 49.7 & \textbf{0.42} \\ \cline{2-5}
+		 & $g_m$ & 8.4 & 22.5 & \textbf{1.52} \\ \cline{2-5}
+		 & $I_D$--$V_{DS}$, $\varepsilon_w$ & 138.0 & 39.6 & \textbf{18.1} \\ \hline
+		\multirow{3}{*}{\shortstack{PMOS\\0.42/1}} & $I_D$ sat. & 66.5 & 29.8 & \textbf{4.87} \\ \cline{2-5}
+		 & $g_m$ & 38.2 & 33.4 & \textbf{18.3} \\ \cline{2-5}
+		 & $I_D$--$V_{DS}$, $\varepsilon_w$ & 60.8 & 73.8 & \textbf{12.3} \\ \hline
+	\end{tabular}}
+\end{table}
+
+The transconductance follows the same trend for three devices, with errors below 3\%. The PMOS 0.42/1 is the exception: its current error is 4.87\%, but its $g_m$ error reaches 18.3\%. In Fig.~\ref{fig:transfer}, the measured $g_m$ of this device keeps increasing up to $|V_{GS}|=1.8$~V, whereas the model's $g_m$ peaks near 1.6~V and then decreases, 32\% below the measurement at 1.8~V. This suggests that the mobility degradation and series resistance of the model are too strong at high gate voltage; the current remains close to the measurement because its errors change sign across the strong-inversion window. This is the cost of the revision described in Section~V-E, which requires a valid parameter set that also fits the output characteristics.
+
+Below the strong-inversion window, the deviations grow, as expected from a calibration that, as in \cite{b17}, prioritizes moderate and strong inversion. The $g_m/I_D$ curves (Fig.~\ref{fig:transfer}, bottom) show the large increase of transconductance efficiency near and below threshold that characterizes cryogenic operation, about three times in weak inversion in \cite{b4}; the calibrated models reproduce its decay above threshold, the region used by $g_m/I_D$-based sizing, whereas the PDK at 25~$^\circ$C does not show it. The peak values below threshold, where the measured points scatter, are not reproduced.
+
+\subsection{Output Characteristics}
+
+Fig.~\ref{fig:idvd} shows the output characteristics, and Table~\ref{tab:idvd} lists the error per curve. The current-weighted error $\varepsilon_w$ is 9.5\% and 9.7\% for the NMOS devices and 12.3\% and 18.1\% for the PMOS devices, against 39.6\% to 138\% for the best and worst PDK baselines (Table~\ref{tab:baseline}). For the NMOS, whose cost used only transfer curves, this is an independent validation. The largest errors appear on the curves closest to the threshold, $|V_{GS}|=0.9$~V for the NMOS and 1.2~V for the PMOS 0.42/0.18, which carry little current and are weighted accordingly; at $|V_{GS}|=1.8$~V, the errors are between 1.6\% and 8.9\%.
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=\textwidth]{fig/jics_idvd.pdf}
+	\caption{Output characteristics at 4~K for $|V_{GS}|=1.2$, 1.5, and 1.8~V (the 1.2-V curve of the PMOS 0.42/1 lies at the noise floor and is omitted).}
+	\label{fig:idvd}
+\end{figure*}
+
+\begin{table}[htbp]\tiny
+	\centering
+	\caption{Output-characteristic errors (\%) of the calibrated models per gate voltage}
+	\label{tab:idvd}
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|c|c|c|c|c|c|}
+		\hline
+		\textbf{Device} & \textbf{0.9 V} & \textbf{1.2 V} & \textbf{1.5 V} & \textbf{1.8 V} & \textbf{$\varepsilon_w$} \\ \hline
+		NMOS 1.68/0.15 & 84.9 & 4.2 & 2.8 & 1.6 & 9.7 \\ \hline
+		NMOS 1.68/1 & 69.0 & 7.5 & 2.7 & 3.8 & 9.5 \\ \hline
+		PMOS 0.42/0.18 & -- & 51.0 & 22.7 & 6.9 & 18.1 \\ \hline
+		PMOS 0.42/1 & -- & -- & 21.1 & 8.9 & 12.3 \\ \hline
+	\end{tabular}
+
+	\vspace{1mm}
+	\parbox{\columnwidth}{\tiny --: curve at the noise floor, discarded (Section~IV).}
+\end{table}
+
+\subsection{Output Conductance and Intrinsic Gain}
+
+For analog design, the slope of the output characteristics matters as much as the current. Fig.~\ref{fig:gds} shows the output conductance in saturation, and Table~\ref{tab:gain} lists its error at $|V_{GS}|=1.8$~V and the intrinsic gain $g_m/g_{ds}$ at $|V_{GS}|=|V_{DS}|=1.8$~V. The calibrated model gives the lowest $g_{ds}$ error for the NMOS 1.68/0.15 and the PMOS 0.42/0.18, with 11.8\% each, whereas for the NMOS 1.68/1 and the PMOS 0.42/1 the PDK at 25~$^\circ$C is closer.
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=\textwidth]{fig/jics_gds.pdf}
+	\caption{Output conductance in saturation at 4~K for $|V_{GS}|=1.2$, 1.5, and 1.8~V. The measured NMOS curves show the cryogenic kink, a steep increase of $g_{ds}$ above $|V_{DS}|\approx1.0$ to 1.3~V, which none of the models reproduces.}
+	\label{fig:gds}
+\end{figure*}
+
+\begin{table}[htbp]\tiny
+	\centering
+	\caption{Output-conductance error (\%) at $|V_{GS}|=1.8$~V and intrinsic gain $g_m/g_{ds}$ at $|V_{GS}|=|V_{DS}|=1.8$~V}
+	\label{tab:gain}
+	\renewcommand{\arraystretch}{1.2}
+	\resizebox{\columnwidth}{!}{%
+	\begin{tabular}{|c|c|c|c|c|c|}
+		\hline
+		\multirow{2}{*}{\textbf{Device}} & \multirow{2}{*}{\textbf{Quantity}} & \multirow{2}{*}{\textbf{Measured}} & \multicolumn{2}{c|}{\textbf{PDK}} & \multirow{2}{*}{\textbf{Calibrated}} \\ \cline{4-5}
+		 & & & \textbf{25~$^\circ$C} & \textbf{$-220$~$^\circ$C} & \\ \hline
+		\multirow{2}{*}{NMOS 1.68/0.15} & $g_{ds}$ error & -- & 14.1 & 25.7 & 11.8 \\ \cline{2-6}
+		 & $g_m/g_{ds}$ & 8.8 & 10.0 & 10.5 & 9.8 \\ \hline
+		\multirow{2}{*}{NMOS 1.68/1} & $g_{ds}$ error & -- & 28.5 & 73.4 & 49.7 \\ \cline{2-6}
+		 & $g_m/g_{ds}$ & 31.3 & 34.9 & 46.8 & 42.1 \\ \hline
+		\multirow{2}{*}{PMOS 0.42/0.18} & $g_{ds}$ error & -- & 25.5 & 22.9 & 11.8 \\ \cline{2-6}
+		 & $g_m/g_{ds}$ & 16.2 & 10.5 & 16.4 & 13.4 \\ \hline
+		\multirow{2}{*}{PMOS 0.42/1} & $g_{ds}$ error & -- & 20.4 & 37.9 & 31.7 \\ \cline{2-6}
+		 & $g_m/g_{ds}$ & 156 & 96 & 228 & 132 \\ \hline
+	\end{tabular}}
+\end{table}
+
+The dominant feature of Fig.~\ref{fig:gds} is the cryogenic kink of the NMOS devices: above $|V_{DS}|\approx1.0$ to 1.3~V, the measured $g_{ds}$ rises steeply, by a factor of 5 to 8.5 for the NMOS 1.68/1 at $|V_{GS}|=1.5$ and 1.2~V. The kink comes from the rise of the local body potential caused by impact ionization in a frozen-out substrate \cite{b4}. None of the three models reproduces it: a standard BSIM4 card with its body terminal tied to the source has no path for this local body bias, and its impact-ionization parameters are not part of the calibrated set. The kink lowers the measured intrinsic gain of the NMOS 1.68/1 at $|V_{GS}|=1.2$~V to about 9, whereas the models predict 85 to 107. For design, this means that the calibrated NMOS models should be used with a drain-voltage margin below the kink, or with the gain at high $|V_{DS}|$ treated as optimistic. The PMOS devices show no kink in this range; the PMOS 0.42/0.18 model follows the measured $g_{ds}$ at the three gate voltages, while the PMOS 0.42/1 model underestimates it by about three times at $|V_{GS}|=1.5$~V.
+
+\subsection{Comparison with IceMOS}
+
+The comparison with IceMOS \cite{b6} is a comparison between fitting techniques, not between models: it asks whether an automated DE flow reaches the accuracy of an interactive calibration, in which the user selects the parameters and adjusts them iteratively. Only the values published in \cite{b6} are used. IceMOS reports median current and $g_m$ errors over a fixed window of $|V_{GS}|$ from 0.8 to 1.8~V, on the NMOS 1.68/0.15, the same device and bin used here, and on the PMOS 0.42/0.15, which falls in a different bin from our PMOS devices. In \cite{b17}, our errors in the window of Section~IV were placed beside those of \cite{b6}, which use the fixed window; Table~\ref{tab:comparison} lists both definitions for our models.
+
+\begin{table}[htbp]\tiny
+	\centering
+	\caption{Current and $g_m$ errors (\%) of IceMOS \cite{b6} and of this work, in the strong-inversion window of Section~IV and in the fixed window of \cite{b6} ($|V_{GS}|$ from 0.8 to 1.8~V)}
 	\label{tab:comparison}
 	\renewcommand{\arraystretch}{1.2}
-	\begin{tabular}{|c|c|c|cc|}
+	\resizebox{\columnwidth}{!}{%
+	\begin{tabular}{|l|c|c|c|c|c|}
 		\hline
-		\textbf{Device}                             & \textbf{Metric} & \textbf{IceMOS~\cite{b6}} & \multicolumn{2}{c|}{\textbf{This Work}}        \\ \hline
-		\multirow{3}{*}{PFET}                       & W/L             & 0.42/0.15                 & \multicolumn{1}{c|}{0.42/0.18} & 0.42/1.00 \\ \cline{2-5}
-		                                            & Current         & \pgfkeysvalueof{/erro_pmos_current/icemos}\%  & \multicolumn{1}{c|}{\pgfkeysvalueof{/erro_pmos_current/short}\%} & \pgfkeysvalueof{/erro_pmos_current/long}\%    \\ \cline{2-5}
-		                                            & $g_m$           & \pgfkeysvalueof{/erro_pmos_gm/icemos}\%  & \multicolumn{1}{c|}{\pgfkeysvalueof{/erro_pmos_gm/short}\%}    & \pgfkeysvalueof{/erro_pmos_gm/long}\%    \\ \hline
-		\multicolumn{1}{|l|}{\multirow{3}{*}{NFET}} & W/L             & 1.68/0.15                & \multicolumn{1}{c|}{1.68/0.15} & 1.68/1.00 \\ \cline{2-5}
-		\multicolumn{1}{|l|}{}                      & Current         & \pgfkeysvalueof{/erro_nmos_current/icemos}\%  & \multicolumn{1}{c|}{\pgfkeysvalueof{/erro_nmos_current/short}\%}    & \pgfkeysvalueof{/erro_nmos_current/long}\%     \\ \cline{2-5}
-		\multicolumn{1}{|l|}{}                      & $g_m$           & \pgfkeysvalueof{/erro_nmos_gm/icemos}\% & \multicolumn{1}{c|}{\pgfkeysvalueof{/erro_nmos_gm/short}\%}     & \pgfkeysvalueof{/erro_nmos_gm/long}\%     \\ \hline
-	\end{tabular}
+		\multirow{2}{*}{\textbf{Work}} & \multirow{2}{*}{\textbf{$W/L$ ($\mu$m)}} & \multicolumn{2}{c|}{\textbf{Current}} & \multicolumn{2}{c|}{\textbf{$g_m$}} \\ \cline{3-6}
+		 & & \textbf{Sec.~IV} & \textbf{0.8--1.8 V} & \textbf{Sec.~IV} & \textbf{0.8--1.8 V} \\ \hline
+		IceMOS \cite{b6} & NMOS 1.68/0.15 & -- & \pgfkeysvalueof{/erro_nmos_current/icemos} & -- & \pgfkeysvalueof{/erro_nmos_gm/icemos} \\ \hline
+		This work & NMOS 1.68/0.15 & \pgfkeysvalueof{/erro_nmos_current/short} & 0.43 & \pgfkeysvalueof{/erro_nmos_gm/short} & 1.86 \\ \hline
+		This work & NMOS 1.68/1 & \pgfkeysvalueof{/erro_nmos_current/long} & 1.45 & \pgfkeysvalueof{/erro_nmos_gm/long} & 2.25 \\ \hline
+		IceMOS \cite{b6} & PMOS 0.42/0.15 & -- & \pgfkeysvalueof{/erro_pmos_current/icemos} & -- & \pgfkeysvalueof{/erro_pmos_gm/icemos} \\ \hline
+		This work & PMOS 0.42/0.18 & \pgfkeysvalueof{/erro_pmos_current/short} & 0.73 & \pgfkeysvalueof{/erro_pmos_gm/short} & 2.84 \\ \hline
+		This work & PMOS 0.42/1 & \pgfkeysvalueof{/erro_pmos_current/long} & 36.7$^{*}$ & \pgfkeysvalueof{/erro_pmos_gm/long} & 34.0$^{*}$ \\ \hline
+	\end{tabular}}
+
+	\vspace{1mm}
+	\parbox{\columnwidth}{\tiny --: not reported. $^{*}$The fixed window starts 0.56~V below the threshold of this device ($|V_{T0}|=1.36$~V), and about 40\% of its points lie where the measured current is at the noise floor (see text).}
 \end{table}
+
+For the NMOS 1.68/0.15, the automated flow reaches 0.43\% in current and 1.86\% in $g_m$ in the window of \cite{b6}, the same order as the 1.11\% and 2.46\% of the interactive calibration. For the PMOS 0.42/0.18, the errors are 0.73\% and 2.84\%, against 9.49\% and 5.95\% reported for the neighboring PMOS 0.42/0.15; the different bin makes this comparison indirect, and it indicates only that the automated flow is competitive, not that one model is better than the other. The fixed window is not meaningful for the PMOS 0.42/1: at 4~K, its threshold is 1.36~V, so between 0.8 and about 1.25~V the measured current is 0.6 to 15~pA, at the noise floor of the instrument, and relative errors of thousands of percent there dominate the median. Inside the strong-inversion window of Section~IV, $|V_{GS}|\ge1.51$~V, the current error of this device stays below 10\% at every point. That window follows the threshold of each device and avoids this artifact. In summary, an automated flow with minimal user intervention reaches errors of the same order as interactive and commercial calibrations (Table~\ref{tab:literature}).
+
+\subsection{Revision of the PMOS 0.42/1 Model}
+
+Three of the four models are the same as in \cite{b17}. After the publication of \cite{b17}, we found that part of the parameter set of the PMOS 0.42/1 model used there lies outside the valid BSIM4 ranges. NGSPICE accepts that model only with the parameter check disabled, and even then the output-characteristic sweep fails to converge, so its $I_D$--$V_{DS}$ behavior could not be reproduced. The device was therefore recalibrated with the regional variant of Section~III-E, which brings the output characteristics into the cost, and the validity check described in Section~III-D became mandatory for every model. The revised model reproduces both transfer and output characteristics, with $\varepsilon_w=12.3$\%. Its strong-inversion current error rises from the \pgfkeysvalueof{/erro_pmos_current/long_conf}\% of \cite{b17} to \pgfkeysvalueof{/erro_pmos_current/long}\%, and its $g_m$ error from \pgfkeysvalueof{/erro_pmos_gm/long_conf}\% to \pgfkeysvalueof{/erro_pmos_gm/long}\% (Section~V-A); this is the cost of a valid parameter set that also fits the output characteristics.
+
+\subsection{Limitations}
+
+The models target saturation in moderate and strong inversion. The linear region ($|V_{DS}|=0.1$~V) is not a validation target. In the strong-inversion window of Section~IV, its current errors are 38.6\% and 27.6\% for the NMOS 1.68/0.15 and 1.68/1, 43.1\% for the PMOS 0.42/1, and 445\% for the PMOS 0.42/0.18; in this short-channel PMOS, whose calibration variant does not adjust the DIBL parameters (Table~\ref{tab:param_groups}), the model does not reproduce the strong drain-induced shift of the threshold observed at 4~K. Circuits that bias transistors in triode, such as switches or a regulator pass device in dropout, should not rely on these models in that region. In weak inversion, the errors grow, and the subthreshold swing is bounded by the effective temperature. The cryogenic kink of the NMOS devices is not modeled (Section~V-C).
+
+The models are calibrated at zero body bias. At this bias, \texttt{k1} and \texttt{k2} affect the current only through the threshold and bulk-charge terms, so the fit can trade them against other parameters without constraining the body effect, and the transfer curves with body bias of the dataset (Section~III-A) were not used. Compared with these curves, at a reverse body bias of 1.2~V and $|V_{DS}|=1.8$~V, with the threshold taken at a drain current of 100~nA$\times W/L$, the threshold shift of the NMOS 1.68/0.15 model is $+114$~mV, against $+143$~mV measured, but that of the NMOS 1.68/1 model is $+707$~mV, against $+192$~mV, and that of the PMOS 0.42/0.18 model is $-1019$~mV, against $+122$~mV, with the opposite sign; for the PMOS 0.42/1, the model gives $+217$~mV at a reverse bias of 0.4~V, against $+35$~mV measured. The models should therefore be used only with source and body at the same potential. Calibrating the body effect with these curves is left for future work.
+
+More generally, the calibration is a fit at the measured operating points, not a physical extraction of parameters. It validates each bin at the measured geometry, at zero body bias, and within the measured bias range, and it imposes no physical constraint on the parameters, so correlated parameters can compensate each other. For example, the low-field mobility in use at $-220$~$^\circ$C, after the binning terms and the temperature scaling of Section~III-B, ranges from 0.14 to 13 times that of the PDK at 25~$^\circ$C, whereas the mobility increase reported from 300~K to 4~K in other bulk technologies is about two times \cite{b4}; inside the fitted range, other parameters, such as those of mobility degradation and series resistance, compensate the difference. Outside that range, for other geometries of the bin, body bias, other temperatures, or biases beyond the measured sweeps, the simulator extrapolates with parameters that need not have physical meaning, and its predictions are not validated. A calibration constrained to physically meaningful ranges is future work.
+
+Each model is calibrated per bin and is valid for the measured geometry. The NIST dataset provides a single geometry inside each of the four bins, so the models could not be validated on other geometries of the same bin, and continuity across bin boundaries is not enforced; it is required before simulating circuits that mix devices from adjacent bins and is left for future work. The four measured geometries also lie on bin edges: their $W$ and $L$ equal the minimum of the calibrated bin and the maximum of an adjacent one. NGSPICE accepts a size on either edge of a bin and takes the first bin that holds it in its internal model list. NGSPICE~41, used in this work, keeps that list in file order and selects the calibrated bin, the same choice as the standard binning rule $\min\le\mathrm{size}<\max$; NGSPICE~42 to 45.2 keep it in reverse order and select the adjacent, uncalibrated bin, so they reproduce the original PDK at these geometries. The models must therefore be simulated with NGSPICE~41 or with a version that applies the standard rule. Finally, since $kT$ is evaluated at the effective temperature, noise and subthreshold results obtained with these models are indicative.
 
 \section{Conclusion}
 
-This work presented a fully automated methodology for generating cryogenic BSIM4 models for the Sky130 technology using experimental 4 K data. The proposed flow combines physics-based parameter initialization with iterative optimization, enabling scalable model extraction without manual parameter tuning.
+This paper extended our conference work on design-oriented cryogenic BSIM4 models for the open-source Sky130 technology, calibrated automatically against public 4-K measurements. The flow combines SEKV-E initialization, an effective simulation temperature justified by the saturation of the subthreshold swing, group-wise differential evolution with NGSPICE in the loop, and a mandatory BSIM4 validity check.
 
-The obtained results show that the methodology is particularly effective in the moderate-to-strong inversion region, where the calibrated models achieved satisfactory agreement with measured transfer, output, and transconductance characteristics. Since the optimization strategy prioritizes these operating regions, the resulting models are especially suitable for analog and mixed-signal designs that do not rely on weak-inversion operation.
+On four devices, the calibrated models reproduce the strong-inversion current with relative RMS errors from 0.42\% to 4.87\% and the output characteristics with current-weighted errors from 9.5\% to 18.1\%, improving on the original PDK simulated at 25 and $-220$~$^\circ$C in every current, transconductance, and output-characteristic error of Table~\ref{tab:baseline}. The extended validation also shows where the models should be used with care: the transconductance of the long-channel PMOS at high gate voltage, the output conductance under the cryogenic kink of the NMOS devices, the linear region, weak inversion, and any bias with source and body at different potentials, since the body effect is not calibrated. The long-channel PMOS model of the conference version was revised to a valid parameter set.
 
-Although larger discrepancies remain in deep-subthreshold conditions, the proposed models provide a practical and robust starting point for cryogenic circuit design in open-source technologies. In addition, the extracted parameter sets can also be used as initial seeds for further manual refinement in other calibration frameworks, such as IceMOS, significantly reducing calibration time and requiring only minor final adjustments.
-
-Therefore, the proposed approach establishes an effective trade-off between automation, scalability, and design-oriented accuracy, contributing to faster and more accessible cryogenic model development for emerging applications such as quantum computing interfaces.
+Against the interactive IceMOS calibration and other works, the automated flow reaches errors of the same order with minimal user intervention, which makes it a practical way to generate cryogenic models for further geometries of open-source technologies, and the resulting parameter sets, valid at the measured operating points, can also seed manual refinements in other frameworks. Modeling the kink, calibrating the body effect, enforcing continuity between bins, extending the calibration to the linear region, and constraining the parameters to physically meaningful ranges are the next steps.
 	% ACKNOWLEDGEMENTS SECTION
 %\setcounter{secnumdepth}{0}
 %\section{Acknowledgements}

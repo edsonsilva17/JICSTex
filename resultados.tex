@@ -1,8 +1,17 @@
+% Valores dos resultados. Fonte: models_4k_sky130nm, branch jics-metodo-unico
+%   - corrente e IDVD: database/calibracoes.db (metricas oficiais)
+%   - gm e janela do IceMOS: apresentacao/dados/e_metricas_dissertacao.json
+%   - linhas de base do PDK: apresentacao/dados/e_baseline.json
+%   - gds e ganho intrinseco: apresentacao/dados/jics_gds.json
+% Corrente: erro RMS relativo em forte inversao, |VGS| >= |VT0| + 0,15 V.
+% gm: media do erro relativo absoluto na mesma janela.
+
 \pgfkeys{
     /erro_pmos_current/.is family,
     /erro_pmos_current,
     short/.initial = 0.42,
-    long/.initial = 2.28,
+    long/.initial = 4.87,
+    long_conf/.initial = 2.28,
     icemos/.initial = 9.49
 }
 
@@ -18,7 +27,8 @@
     /erro_pmos_gm/.is family,
     /erro_pmos_gm,
     short/.initial = 1.52,
-    long/.initial = 7.65,
+    long/.initial = 18.3,
+    long_conf/.initial = 7.65,
     icemos/.initial = 5.95
 }
 
@@ -28,4 +38,14 @@
     short/.initial = 2.87,
     long/.initial = 2.69,
     icemos/.initial = 2.46
+}
+
+% erro ponderado da familia IDVD
+\pgfkeys{
+    /erro_idvd/.is family,
+    /erro_idvd,
+    nmos_short/.initial = 9.7,
+    nmos_long/.initial = 9.5,
+    pmos_short/.initial = 18.1,
+    pmos_long/.initial = 12.3
 }
