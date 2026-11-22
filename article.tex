@@ -56,11 +56,11 @@ e-mail: edson.silva17274@alunos.ufersa.edu.br
 	% BODY SECTIONS
 \section{Introduction}
 
-Quantum computing platforms require electronic interfaces capable of operating at cryogenic temperatures, typically near 4~K, for qubit control and readout \cite{b1,b2,b3,b16}. Placing CMOS circuits inside the cryostat, close to the qubits, reduces the number of interconnections to room temperature and is a key step toward scalable systems.
+Quantum computing platforms require electronic interfaces capable of operating at cryogenic temperatures, typically near 4~K, for qubit control and readout \cite{b1,b3,b16}. Placing CMOS circuits inside the cryostat, close to the qubits, reduces the number of interconnections to room temperature and is a key step toward scalable systems.
 
 At such temperatures, conventional CMOS models no longer describe the transistor. The threshold voltage rises, the mobility changes, the subthreshold swing saturates far above its Boltzmann limit, and effects such as the kink appear in the output characteristics \cite{b4,b23}. Foundry process design kits (PDKs) are characterized for the industrial temperature range, so a designer of cryogenic circuits needs compact models extracted from cryogenic measurements.
 
-The open-source SkyWater 130-nm PDK (Sky130) \cite{b9,b10} is an attractive platform for this work: its models can be modified without legal restriction, and 4-K measurements of its transistors are publicly available \cite{b15,b16}. Open cryogenic models and calibration flows for Sky130 have been reported \cite{b6,b7,b21}, but generating calibrated models still depends on commercial extractors or on user-driven iterative tuning.
+The open-source SkyWater 130-nm PDK (Sky130) \cite{b10} is an attractive platform for this work: its models can be modified without legal restriction, and 4-K measurements of its transistors are publicly available \cite{b15,b16}. Open cryogenic models and calibration flows for Sky130 have been reported \cite{b6,b7,b21}, but generating calibrated models still depends on commercial extractors or on user-driven iterative tuning.
 
 In the conference version of this work \cite{b17}, we presented an automated calibration flow that generates design-oriented 4-K BSIM4 models for Sky130 from the NIST measurements, combining SEKV-E initialization with differential-evolution optimization in NGSPICE, and validated it on four devices. This paper extends that work with:
 \begin{compactitem}
